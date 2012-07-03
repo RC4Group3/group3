@@ -1,0 +1,15 @@
+<package>
+  <description brief="brics_msgs">
+
+     brics_msgs
+
+  </description>
+  <author>Laura Lindzey</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/brics_msgs</url>
+  <depend package="std_msgs"/>
+
+</package>
+
+

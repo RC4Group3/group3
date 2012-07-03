@@ -1,0 +1,24 @@
+<package>
+  <description brief="ar_follower">
+
+     ar_follower
+
+  </description>
+  <author>Laura Lindzey</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ar_follower</url>
+
+  <depend package="actionlib"/>
+  <depend package="actionlib_msgs"/>
+  <depend package="brics_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="move_base_msgs"/>
+  <depend package="rospy"/>
+  <depend package="smach"/>
+  <depend package="smach_ros"/>
+  <depend package="tf"/>
+
+</package>
+
+

@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find lagr_smach)/src/move_base_params.launch"/>
+  <param name="/laserTopic" value="/sick_scan"/>
+  <param name="/robotNumber" value="42"/>
+  <param name='/SimulateVehicleController' value='true'/>
+  <node name="vehicleControllerSim" pkg="lagr_base" type="vehicleController" />
+  <node name="move_base" pkg="move_base" type="move_base" />
+  <node name="ladar_sim" pkg="ladar_sim" type="ladar_sim.py" />
+
+</launch>
