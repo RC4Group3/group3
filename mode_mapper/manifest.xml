@@ -1,0 +1,16 @@
+<package>
+  <description brief="mode_mapper">
+
+     mode_mapper
+
+  </description>
+  <author>Laura Lindzey</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/mode_mapper</url>
+  <depend package="rospy"/>
+  <depend package="brics_msgs"/>
+
+</package>
+
+

@@ -40,6 +40,7 @@ class Init(smach.State):
             rospy.sleep(2.0)
         # TODO: this is sloppy ... should cycle through all and choose best, rather than just looking for first
         # however, it shouldn't matter, as the next callback will find the following marker
+        # TODO: this duplicates code in the GotoTag.execute method...
         for marker_pose in self.curr_msg.markersPoses:
             if marker_pose.marker_id in userdata.tag_ids:
                 marker_x = marker_pose.poseWRTRobotFrame.position.x
