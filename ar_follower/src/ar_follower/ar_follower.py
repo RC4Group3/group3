@@ -115,53 +115,11 @@ class GotoTag(smach.State):
             print "ar_follower.GotoTag's controller returned %r" % (controller_state)
             return 'goto_failed'
 
-#def monitor_cb(userdata, msg):
-#    # needs to return False when we have data that we need ...
-#    # TODO: needs to actually check *every* ID in the list, not just the first one..or maybe not, if we need to follow the list in order....
-#    print "called monitor_cb with userdata ids: %r \n \n and msg: %r"% (userdata, msg)
-#    if msg.marker_id in userdata.tag_ids[1:]:
-#        print "in ar_follow3er.monitor_cb. about to update userdata.marker_ids!"
-#        tag_idx = userdata.tag_ids.index(msg.marker_id)
-#        userdata.tag_ids = userdata.tag_ids[tag_idx:]
-#        userdata.tag_location = [msg.marker_x, msg.marker_y]
-#        return False
-#    else:
-#        return True
-
-## whenever either child terminates, want to preempt the other...
-#def child_term_cb(outcome_map):
-#    return False
-
-#def out_cb(outcome_map):
-#    if outcome_map['GOTO_TAG'] == 'succeeded':
-#        return 'at_tag'
-#    elif outcome_map['GOTO_TAG'] == 'aborted':
-#        return 'goto_failed'
-#    # in this case, we received a new message with higher probability ... already dealt with userdata
-#    if outcome_map['MONITOR_TAGS'] == 'invalid':
-#        return 'new_tag'
-#    return 'goto_failed'
-        
-
-
 def main():
     rospy.init_node('ar_follower')
     sm = smach.StateMachine(outcomes=['done'])
     sm.userdata.tag_ids = [19, 22, 24, 26, 38]
     sm.userdata.init_iter_count = 0
-
-    #path_concurrence = smach.Concurrence(outcomes=['at_tag', 'goto_failed', 'new_tag'],
-    #                                     input_keys = ['tag_location', 'tag_ids'],
-    #                                     output_keys = ['tag_location', 'tag_ids'],
-    #                                     default_outcome='at_tag',
-    #                                     child_termination_cb=child_term_cb,
-    #                                     outcome_cb=out_cb)
-    #with path_concurrence:
-    #    smach.Concurrence.add('GOTO_TAG', GotoTag())
-    #    smach.Concurrence.add('MONITOR_TAGS', 
-    #                          smach_ros.MonitorState("/markers_poses_topic", marker_detection, monitor_cb,
-    #                                                 input_keys = ['tag_ids'],
-    #                                                 output_keys = ['tag_ids', 'tag_location']))
     
     with sm:
         smach.StateMachine.add('INIT', Init(), 
