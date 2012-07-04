@@ -11,7 +11,7 @@ import math
 # TODO: replace this with the real message type, as soon as I have real data to test with ...
 
 from actionlib_msgs.msg import GoalStatus
-#from brics_msgs.msg import marker_detection
+from brics_msgs.srv import markerFollower, markerFollowerResponse
 from mbn_msgs.msg import MarkersPoses
 from geometry_msgs.msg import Quaternion, PoseStamped, Point
 from move_base_msgs.msg import *
@@ -23,7 +23,7 @@ class Init(smach.State):
                              outcomes=['done', 'keep_looking', 'not_seen', 'tag_seen'],
                              input_keys=['tag_ids', 'init_iter_count'],
                              output_keys=['tag_location', 'init_iter_count'])
-        #self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", marker_detection, self.marker_cb)
+
         self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", MarkersPoses, self.marker_cb)
         self.curr_msg = None
 
@@ -64,7 +64,6 @@ class GotoTag(smach.State):
         self.controller_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.controller_client.wait_for_server()
 
-        #self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", marker_detection, self.marker_cb)
         self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", MarkersPoses, self.marker_cb)
         self.curr_msg = None
 
@@ -115,46 +114,51 @@ class GotoTag(smach.State):
             print "ar_follower.GotoTag's controller returned %r" % (controller_state)
             return 'goto_failed'
 
+class my_sm_server():
+    def __init__(self):
+        sm = smach.StateMachine(outcomes=['DONE'])
+        with sm:
+            smach.StateMachine.add('INIT', Init(), 
+                                   transitions={'done':'DONE', 
+                                                'not_seen':'TURN', 
+                                                'keep_looking':'INIT', 
+                                                'tag_seen':'FOLLOW_PATH'})
+            goal_msg = MoveBaseGoal()
+            goal_pose = PoseStamped()
+            goal_pose.header.frame_id = "/base_link"
+            goal_pose.header.stamp = rospy.Time.now()
+            goal_pt = Point(0.0, 0.0, 0.0)
+            goal_pose.pose.position = goal_pt
+            qq = tf.transformations.quaternion_from_euler(0, 0, math.pi/6)
+            goal_pose.pose.orientation = Quaternion(*qq)
+            goal_msg.target_pose = goal_pose
+            smach.StateMachine.add('TURN',
+                                   SimpleActionState('move_base', MoveBaseAction, 
+                                                     goal=goal_msg),
+                                   transitions={'succeeded':'INIT', 
+                                                'preempted':'INIT',
+                                                'aborted':'INIT'})
+        
+            smach.StateMachine.add('FOLLOW_PATH', GotoTag(),
+                                   transitions={'at_tag':'INIT', 
+                                                'goto_failed':'INIT',
+                                                'new_tag':'FOLLOW_PATH'})
+            
+        self.sm = sm
+        self.server = rospy.Service("rum_ar_follower", markerFollower, self.service_cb)
+
+    def service_cb(self, req):
+        self.sm.userdata.tag_ids = req.ids
+        self.sm.userdata.init_iter_count = 0
+        result = self.sm.execute()
+        resp = markerFollowerResponse()
+        return resp
+
+
 def main():
     rospy.init_node('ar_follower')
-    sm = smach.StateMachine(outcomes=['done'])
-    sm.userdata.tag_ids = [19, 22, 24, 26, 38]
-    sm.userdata.init_iter_count = 0
-    
-    with sm:
-        smach.StateMachine.add('INIT', Init(), 
-                               transitions={'done':'done', 
-                                            'not_seen':'TURN', 
-                                            'keep_looking':'INIT', 
-                                            'tag_seen':'FOLLOW_PATH'})
-        goal_msg = MoveBaseGoal()
-        goal_pose = PoseStamped()
-        goal_pose.header.frame_id = "/base_link"
-        goal_pose.header.stamp = rospy.Time.now()
-        goal_pt = Point(0.0, 0.0, 0.0)
-        goal_pose.pose.position = goal_pt
-        qq = tf.transformations.quaternion_from_euler(0, 0, math.pi/6)
-        goal_pose.pose.orientation = Quaternion(*qq)
-        goal_msg.target_pose = goal_pose
-        smach.StateMachine.add('TURN',
-                               SimpleActionState('move_base', MoveBaseAction, 
-                                                 goal=goal_msg),
-                               transitions={'succeeded':'INIT', 
-                                            'preempted':'INIT',
-                                            'aborted':'INIT'})
-        
-        smach.StateMachine.add('FOLLOW_PATH', GotoTag(),
-                               transitions={'at_tag':'INIT', 
-                                            'goto_failed':'INIT',
-                                            'new_tag':'FOLLOW_PATH'})
-   
-    sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
-    sis.start()
-    sm.execute()
+    foo = my_sm_server()
     rospy.spin()
-    sis.stop()
-    
-
 
 if __name__=="__main__":
     main()
