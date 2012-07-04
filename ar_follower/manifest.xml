@@ -13,6 +13,7 @@
   <depend package="actionlib_msgs"/>
   <depend package="brics_msgs"/>
   <depend package="geometry_msgs"/>
+  <depend package="mbn_msgs"/>
   <depend package="move_base_msgs"/>
   <depend package="rospy"/>
   <depend package="smach"/>

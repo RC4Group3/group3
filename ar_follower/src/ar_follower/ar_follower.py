@@ -11,7 +11,8 @@ import math
 # TODO: replace this with the real message type, as soon as I have real data to test with ...
 
 from actionlib_msgs.msg import GoalStatus
-from brics_msgs.msg import marker_detection
+#from brics_msgs.msg import marker_detection
+from mbn_msgs.msg import MarkersPoses
 from geometry_msgs.msg import Quaternion, PoseStamped, Point
 from move_base_msgs.msg import *
 from smach_ros import SimpleActionState
@@ -22,7 +23,8 @@ class Init(smach.State):
                              outcomes=['done', 'keep_looking', 'not_seen', 'tag_seen'],
                              input_keys=['tag_ids', 'init_iter_count'],
                              output_keys=['tag_location', 'init_iter_count'])
-        self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", marker_detection, self.marker_cb)
+        #self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", marker_detection, self.marker_cb)
+        self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", MarkersPoses, self.marker_cb)
         self.curr_msg = None
 
     def marker_cb(self, marker_msg):
@@ -36,18 +38,23 @@ class Init(smach.State):
         self.curr_msg = None
         while self.curr_msg is None:
             rospy.sleep(2.0)
-        if self.curr_msg.marker_id in userdata.tag_ids:
-            # TODO: is this thread-safe? I'm still confused w/ python's threading...
-            userdata.tag_location=[self.curr_msg.marker_x, self.curr_msg.marker_y]
-            userdata.init_iter_count = 0 # gotta reset this
-            return 'tag_seen'
+        # TODO: this is sloppy ... should cycle through all and choose best, rather than just looking for first
+        # however, it shouldn't matter, as the next callback will find the following marker
+        for marker_pose in self.curr_msg.markersPoses:
+            if marker_pose.marker_id in userdata.tag_ids:
+                marker_x = marker_pose.poseWRTRobotFrame.position.x
+                marker_y = marker_pose.poseWRTRobotFrame.position.y
+                # TODO: is this thread-safe? I'm still confused w/ python's threading...
+                userdata.tag_location=[marker_x, marker_y]
+                userdata.init_iter_count = 0 # gotta reset this
+                return 'tag_seen'
+
+        userdata.init_iter_count += 1
+        if userdata.init_iter_count < 10:
+            return 'keep_looking'
         else:
-            userdata.init_iter_count += 1
-            if userdata.init_iter_count < 10:
-                return 'keep_looking'
-            else:
-                userdata.init_iter_count = 0
-                return 'not_seen'
+            userdata.init_iter_count = 0
+            return 'not_seen'
 
 class GotoTag(smach.State):
     def __init__(self):
@@ -57,7 +64,8 @@ class GotoTag(smach.State):
         self.controller_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.controller_client.wait_for_server()
 
-        self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", marker_detection, self.marker_cb)
+        #self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", marker_detection, self.marker_cb)
+        self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", MarkersPoses, self.marker_cb)
         self.curr_msg = None
 
     def marker_cb(self, marker_msg):
@@ -78,12 +86,15 @@ class GotoTag(smach.State):
         self.controller_client.send_goal(goal_msg)
         goal_status = self.controller_client.get_state()
         while goal_status in [GoalStatus.PENDING, GoalStatus.ACTIVE]:
-            if self.curr_msg.marker_id in userdata.tag_ids[1:]:
-                print "in ar_follow3er.execute, msg %r has marker on path: %r" % (self.curr_msg, userdata.tag_ids)
-                tag_idx = userdata.tag_ids.index(self.curr_msg.marker_id)
-                userdata.tag_ids = userdata.tag_ids[tag_idx:]
-                userdata.tag_location = [self.curr_msg.marker_x, self.curr_msg.marker_y]
-                return 'new_tag'
+            for marker_pose in self.curr_msg.markersPoses:
+                if marker_pose.marker_id in userdata.tag_ids[1:]:
+                    marker_x = marker_pose.poseWRTRobotFrame.position.x
+                    marker_y = marker_pose.poseWRTRobotFrame.position.y
+                    # TODO: is this thread-safe? I'm still confused w/ python's threading...
+                    userdata.tag_location=[marker_x, marker_y]
+                    tag_idx = userdata.tag_ids.index(marker_pose.marker_id)
+                    userdata.tag_ids = userdata.tag_ids[tag_idx:]
+                    return 'new_tag'
             rospy.sleep(0.2)
             goal_status = self.controller_client.get_state()
 
@@ -136,7 +147,7 @@ class GotoTag(smach.State):
 def main():
     rospy.init_node('ar_follower')
     sm = smach.StateMachine(outcomes=['done'])
-    sm.userdata.tag_ids = [1, 2, 3, 4, 5]
+    sm.userdata.tag_ids = [19, 22, 24, 26, 38]
     sm.userdata.init_iter_count = 0
 
     #path_concurrence = smach.Concurrence(outcomes=['at_tag', 'goto_failed', 'new_tag'],
