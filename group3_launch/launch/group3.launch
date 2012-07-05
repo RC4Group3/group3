@@ -1,0 +1,19 @@
+<launch>
+
+	<!--bring up the robot itself -->
+	<include file="$(find raw_bringup)/robots/robot.launch"/>
+
+	<!-- for now, have to launch the mbn driver and marker finder by hand, due to hardcoded paths :( -->
+
+	<!---all the sensor/mapper/controller stuff -->
+	<include file="$(find group3_launch)/launch/2dnav.launch"/>
+
+	<!-- and the mapper that keeps track of what mode we're in -->
+	<node name="mode_mapper" pkg="mode_mapper" type="mode_mapper.py" />
+	<!--now, the nodes that implement the various services that the overall planner will need ... -->
+	<node name="marker_map_transition" pkg="marker_map_transition" type="marker_map_transition.py" />
+	<node name="ar_follower" pkg="ar_follower" type="ar_follower.py" />
+	<!-- TODO: need the map follower and map_marker_transition nodes .... -->
+
+</launch>
+	

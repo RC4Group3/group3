@@ -1,13 +1,13 @@
 <package>
-  <description brief="graph_map">
+  <description brief="group3_launch">
 
-     graph_map
+     group3_launch
 
   </description>
   <author>rc4</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/graph_map</url>
+  <url>http://ros.org/wiki/group3_launch</url>
 
 </package>
 

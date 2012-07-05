@@ -25,8 +25,8 @@
 	</group>
 
 	<!-- Run AMCL -->
-	<include file="$(find graph_map)/amcl1.launch" />
-	<include file="$(find graph_map)/amcl2.launch" />
+	<include file="$(find group3_launch)/launch/amcl1.launch" />
+	<include file="$(find group3_launch)/launch/amcl2.launch" />
 
 	<!-- launch move_base node -->
 	<include file="$(find raw_2dnav)/ros/launch/move_base.launch" />

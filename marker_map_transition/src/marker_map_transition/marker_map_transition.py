@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('marker_map_transition.py')
+import roslib; roslib.load_manifest('marker_map_transition')
 import rospy
 import tf
 
 import math
 
 from brics_msgs.srv import markerMapTransition, markerMapTransitionResponse, setMapMode, setMapModeRequest
+from brics_msgs.msg import map_mode
 from geometry_msgs.msg import PoseWithCovarianceStamped, Point, Quaternion
-from std_srvs.srv import Empty
+from std_srvs.srv import Empty, EmptyRequest
 
 
 class markerMapTransitioner():
@@ -40,11 +41,13 @@ class markerMapTransitioner():
 
 
     def server_cb(self, transition_req):
+        map_mode_msg = map_mode()
         # re-init appropriate amcl estimator ...
         resetAMCLreq = EmptyRequest()
-        if transition_req.map_id == transition_req.MAP_A:
+        # this is ugly, but the marker_map_transition code uses a diff enum than the various messages going through the mode_mapper.py
+        if transition_req.map_id == map_mode_msg.MAP_A:
             self.amcl1_client(resetAMCLreq)
-        elif transition_req.map_id == transition_req.MAP_B:
+        elif transition_req.map_id == map_mode_msg.MAP_B:
             self.amcl2_client(resetAMCLreq)
         else:
             rospy.logerror("in markerMapTransitioner.server_cb, requested invalid map_id!! request was: %r", transition_req)
@@ -64,20 +67,20 @@ class markerMapTransitioner():
         covariance[21] = (math.pi/12.0)**2
         pose_msg.pose.covariance = covariance
 
-        if transition_req.map_id == transition_req.MAP_A:
+        if transition_req.map_id == map_mode_msg.MAP_A:
             pose_msg.header.frame_id = "/map1"
             self.amcl1_pose_pub.publish(pose_msg)
-        elif transition_req.map_id == transition_req.MAP_B:
+        elif transition_req.map_id == map_mode_msg.MAP_B:
             pose_msg.header.frame_id = "/map2"
             self.amcl2_pose_pub.publish(pose_msg)
 
         # send info to the mapper module to keep track of what mode we're in
         # rosservice call set_map_mode map_frame={0, 1} -1
         set_mode_req = setMapModeRequest()
-        if transition_req.map_id == transition_req.MAP_A:
-            set_mode_req.mode = set_mode_req.MAP_A
-        elif transition_req.map_id == transition_req.MAP_B:
-            set_mode_req.mode = set_mode_req.MAP_B
+        if transition_req.map_id == map_mode_msg.MAP_A:
+            set_mode_req.mode = map_mode_msg.MAP_A
+        elif transition_req.map_id == map_mode_msg.MAP_B:
+            set_mode_req.mode = map_mode_msg.MAP_B
         self.map_client(set_mode_req)
 
         # need to instantiate an empty response message
