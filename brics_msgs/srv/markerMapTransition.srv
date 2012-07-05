@@ -1,0 +1,11 @@
+int8 MAP_A=1
+int8 MAP_B=2
+
+# which map we're transitioning to
+int8 map_id
+# prior location of robot in that map (location of a marker at the end of a marker path)
+float32 map_x
+float32 map_y
+float32 map_th
+---
+# empty response...
