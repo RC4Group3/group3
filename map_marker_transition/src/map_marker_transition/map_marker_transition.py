@@ -31,4 +31,4 @@ class mapMarkerTransitioner():
 if __name__=="__main__":
     rospy.init_node('map_marker_transition')
     my_transitioner = mapMarkerTransitioner()
-    rospy.spin
+    rospy.spin()
