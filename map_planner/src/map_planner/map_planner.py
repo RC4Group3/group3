@@ -7,11 +7,11 @@ import tf
 # for service call from Andreas's graph planner...
 from brics_msgs.srv import mapPlanner, mapPlannerResponse
 # for handling the interaction with move_base
-from geometry_msgs.msg import PostStamped, Point, Quaternion
+from geometry_msgs.msg import PoseStamped, Point, Quaternion
 from move_base_msgs.msg import *
 
-
-class mapPlanner():
+# can't have class name and message name be the same....
+class foomapPlanner():
     def __init__(self):
         self.server = rospy.Service("/run_map_planner", mapPlanner, self.service_cb)
         self.controller_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
@@ -19,7 +19,7 @@ class mapPlanner():
         self.controller_client.wait_for_server()
         print "got move_base"
 
-    def server_cb(self, req):
+    def service_cb(self, req):
         # create goal message
         goal_pose = PoseStamped()
         goal_pose.header.frame_id = req.frame_id
@@ -40,5 +40,5 @@ class mapPlanner():
 
 if __name__=="__main__":
     rospy.init_node('map_planner')
-    my_planner = mapPlanner()
+    my_planner = foomapPlanner()
     rospy.spin()
