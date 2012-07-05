@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('coorinator')
+import roslib; roslib.load_manifest('coordinator')
 
 import rospy
 
 # uses pretty much every service interface we've defined...
 from brics_msgs.srv import *
-
+from brics_msgs.msg import map_mode
 
 
 class bricsCoordinator():
@@ -27,24 +27,25 @@ class bricsCoordinator():
         
         # for calling the marker -> map transition
         map_transition_service = "/transition_marker2map"
-        self.map_transition_service = rospy.ServiceProxy(map_transition_service, marker_map_transition)
+        self.map_transition_service = rospy.ServiceProxy(map_transition_service, markerMapTransition)
         rospy.loginfo("waiting for transition_marker2map service ...")
-        rospy.wait_for_service(transition_marker2map)
+        rospy.wait_for_service(map_transition_service)
         rospy.loginfo("....got transition_marker2map service!")
 
         # for calling the map -> marker transition
         marker_transition_service = "/transition_map2marker"
-        self.marker_transition_service = rospy.ServiceProxy(marker_transition_service, map_marker_transition)
+        self.marker_transition_service = rospy.ServiceProxy(marker_transition_service, mapMarkerTransition)
         rospy.loginfo("waiting for transition_map2marker service ...")
-        rospy.wait_for_service(transition_map2marker)
+        rospy.wait_for_service(marker_transition_service)
         rospy.loginfo("....got transition_map2marker service!")
         
 
     def run_test_script(self):
         # this script assumes that the robot is currently located at marker 35
         # initialize the mode_mapper
-        init_mapper_req = getMapModeRequest()
-        init_mapper_req.mode = init_mapper_req.MARKER_MODE
+        map_mode_msg = map_mode()
+        init_mapper_req = setMapModeRequest()
+        init_mapper_req.mode = map_mode.MARKER_MODE
         init_mapper_req.marker = 35
         self.marker_transition_service(init_mapper_req)
 
