@@ -1,0 +1,14 @@
+<package>
+  <description brief="graph_map">
+
+     graph_map
+
+  </description>
+  <author>rc4</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/graph_map</url>
+
+</package>
+
+

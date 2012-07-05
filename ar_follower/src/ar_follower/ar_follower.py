@@ -37,7 +37,7 @@ class Init(smach.State):
         # make sure we get the *next* tag detection message
         self.curr_msg = None
         while self.curr_msg is None:
-            rospy.sleep(2.0)
+            rospy.sleep(1.0)
         # TODO: this is sloppy ... should cycle through all and choose best, rather than just looking for first
         # however, it shouldn't matter, as the next callback will find the following marker
         # TODO: this duplicates code in the GotoTag.execute method...
@@ -45,8 +45,11 @@ class Init(smach.State):
             if marker_pose.marker_id in userdata.tag_ids:
                 marker_x = marker_pose.poseWRTRobotFrame.position.x
                 marker_y = marker_pose.poseWRTRobotFrame.position.y
+                quat = marker_pose.poseWRTRobotFrame.orientation
+                euler = tf.transformations.euler_from_quaternion([quat.x, quat.y, quat.z, quat.w])
+                marker_th = euler[2]
                 # TODO: is this thread-safe? I'm still confused w/ python's threading...
-                userdata.tag_location=[marker_x, marker_y]
+                userdata.tag_location=[marker_x, marker_y, marker_th]
                 userdata.init_iter_count = 0 # gotta reset this
                 return 'tag_seen'
 
@@ -63,7 +66,9 @@ class GotoTag(smach.State):
                              input_keys=['tag_location', 'tag_ids'],
                              output_keys=['tag_location', 'tag_ids'])
         self.controller_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+        print "waiting for move_base..."
         self.controller_client.wait_for_server()
+        print "got move_base"
 
         self.tag_subscriber = rospy.Subscriber("/markers_poses_topic", MarkersPoses, self.marker_cb)
         self.curr_msg = None
@@ -75,12 +80,12 @@ class GotoTag(smach.State):
         goal_msg = MoveBaseGoal()
         goal_pose = PoseStamped()
         # TODO: this should get the frame from the input marker message...
-        goal_pose.header.frame_id = "/map"
+        goal_pose.header.frame_id = "/base_link"
         goal_pose.header.stamp = rospy.Time.now()
         goal_pt = Point(userdata.tag_location[0], userdata.tag_location[1], 0.0)
         goal_pose.pose.position = goal_pt
         # TODO: this should be aligned with the april tag pose!
-        qq = tf.transformations.quaternion_from_euler(0, 0, 0.0)
+        qq = tf.transformations.quaternion_from_euler(0, 0, userdata.tag_location[2])
         goal_pose.pose.orientation = Quaternion(*qq)
         goal_msg.target_pose = goal_pose
         self.controller_client.send_goal(goal_msg)
@@ -90,8 +95,11 @@ class GotoTag(smach.State):
                 if marker_pose.marker_id in userdata.tag_ids[1:]:
                     marker_x = marker_pose.poseWRTRobotFrame.position.x
                     marker_y = marker_pose.poseWRTRobotFrame.position.y
+                    quat = marker_pose.poseWRTRobotFrame.orientation
+                    euler = tf.transformations.euler_from_quaternion([quat.x, quat.y, quat.z, quat.w])
+                    marker_th = euler[2]
                     # TODO: is this thread-safe? I'm still confused w/ python's threading...
-                    userdata.tag_location=[marker_x, marker_y]
+                    userdata.tag_location=[marker_x, marker_y, marker_th]
                     tag_idx = userdata.tag_ids.index(marker_pose.marker_id)
                     userdata.tag_ids = userdata.tag_ids[tag_idx:]
                     return 'new_tag'
