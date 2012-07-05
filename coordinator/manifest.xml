@@ -1,0 +1,16 @@
+<package>
+  <description brief="coordinator">
+
+     coordinator
+
+  </description>
+  <author>Laura Lindzey</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/coordinator</url>
+  <depend package="brics_msgs"/>
+  <depend package="rospy"/>
+
+</package>
+
+
