@@ -1,0 +1,34 @@
+<launch>
+   	 <!-- navigation goals -->
+	<include file="$(find raw_default_env_config)/upload_param.launch" />
+    
+    	<!-- visualize navigation goals -->
+	<node pkg="raw_tools" type="navigation_goals_as_marker.py" name="raw_navigation_goals_as_marker"/>
+
+	<arg name="map_A" default="$(find raw_default_env_config)/$(env ROBOT_ENV)/map_room_a.yaml" />
+	<arg name="map_B" default="$(find raw_default_env_config)/$(env ROBOT_ENV)/map_room_b.yaml" />
+
+	<!--- Run map_server -->
+
+
+	<group ns="map1">
+	       <node name="map_server_A" pkg="map_server" type="map_server" args="$(arg map_A)">
+	             <param name="frame_id" value="/map1"/>
+                </node>
+	</group>
+
+	<group ns="map2">
+		<param name="frame_id" value="/map2"/>
+		<node name="map_server_B" pkg="map_server" type="map_server" args="$(arg map_B)">
+		      <param name="frame_id" value="/map2"/>
+		</node>
+	</group>
+
+	<!-- Run AMCL -->
+	<include file="$(find graph_map)/amcl1.launch" />
+	<include file="$(find graph_map)/amcl2.launch" />
+
+	<!-- launch move_base node -->
+	<include file="$(find raw_2dnav)/ros/launch/move_base.launch" />
+
+</launch>
