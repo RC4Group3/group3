@@ -31,6 +31,7 @@ class Init(smach.State):
         self.curr_msg = marker_msg
         
     def execute(self, userdata):
+        print "Init.execute has userdata: %r" % userdata
         print "executing state ar_follower.Init with id list: %r" % (userdata.tag_ids)
         if userdata.tag_ids == []:
             return 'done'
@@ -154,10 +155,14 @@ class my_sm_server():
                                                 'new_tag':'FOLLOW_PATH'})
             
         self.sm = sm
-        self.server = rospy.Service("rum_ar_follower", markerFollower, self.service_cb)
+        self.server = rospy.Service("run_ar_follower", markerFollower, self.service_cb)
 
     def service_cb(self, req):
-        self.sm.userdata.tag_ids = req.ids
+        arr = [elem for elem in req.ids]
+        rospy.loginfo("received service request: %r \n in array form: %r", req.ids, arr)
+
+        self.sm.userdata.tag_ids = arr
+        print self.sm.userdata.tag_ids
         self.sm.userdata.init_iter_count = 0
         result = self.sm.execute()
         resp = markerFollowerResponse()
