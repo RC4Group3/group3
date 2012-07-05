@@ -1,0 +1,16 @@
+<package>
+  <description brief="map_marker_transition">
+
+     map_marker_transition
+
+  </description>
+  <author>Laura Lindzey</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/map_marker_transition</url>
+  <depend package="brics_msgs"/>
+  <depend package="rospy"/>
+
+</package>
+
+
