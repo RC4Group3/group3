@@ -1,5 +1,4 @@
 import java.util.List;
-import java.util.Map;
 
 import brics.MapPlanner;
 import brics.MarkerPlanner;
@@ -8,7 +7,6 @@ import brics.Planner.Edge;
 import brics.TransitionPlanner;
 import brics.types.MapPose;
 import brics.types.MarkerPose;
-import brics.types.Pose;
 
 public class Main {
 
@@ -17,14 +15,14 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 
-		MapPlanner mapPlanner = new MapPlanner();
+		MapPlanner mapPlanner = new MapPlanner(null);
 
 		MarkerPlanner markerPlanner = new MarkerPlanner(new DummyMarkerPathExecutor());
 		markerPlanner.addMarkerPath(new MarkerPose(1), new MarkerPose(2),
 				new MarkerPose(3), new MarkerPose(4));
 
 		TransitionPlanner transitionPlanner = new TransitionPlanner(
-				markerPlanner, mapPlanner);
+				markerPlanner, mapPlanner, null);
 		transitionPlanner.addMapToMarker(new MapPose("A", 0, 0, 0),
 				new MarkerPose(1));
 		transitionPlanner.addMarkerToMap(new MarkerPose(4), new MapPose("B", 0,

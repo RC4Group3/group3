@@ -15,6 +15,7 @@ public class MarkerPlanner implements SubPlanner {
 	private final MarkerPathExecutor executor;
 	private List<List<MarkerPose>> markerPaths = new ArrayList<List<MarkerPose>>();
 	private List<Pose> interestingPoses = new ArrayList<Pose>();
+	private List<MarkerPose> visibleMarkers = new ArrayList<MarkerPose>();
 
 	public MarkerPlanner(MarkerPathExecutor executor) {
 		this.executor = executor;
@@ -74,7 +75,7 @@ public class MarkerPlanner implements SubPlanner {
 	}
 
 	public List<MarkerPose> getVisibleMarkers() {
-		ArrayList<MarkerPose> ret = new ArrayList<MarkerPose>();
+		ArrayList<MarkerPose> ret = new ArrayList<MarkerPose>(visibleMarkers);
 		if (currentPose != null)
 			ret.add(currentPose);
 		return ret;
@@ -89,7 +90,7 @@ public class MarkerPlanner implements SubPlanner {
 	public boolean moveTo(Pose goal) {
 		System.out.println("Moving to marker "
 				+ ((MarkerPose) goal).getMarkerId());
-		
+
 		for (MarkerPose start : getVisibleMarkers()) {
 			for (List<MarkerPose> path : markerPaths) {
 				if (path.contains(start) && path.contains(goal)
@@ -109,7 +110,15 @@ public class MarkerPlanner implements SubPlanner {
 		return false;
 	}
 
-	public void setCurrentPose(MarkerPose currentPose) {
-		this.currentPose = currentPose;
+	public void setCurrentPose(MarkerPose markerPose) {
+		if (markerPose != null && markerPose.equals(currentPose))
+			System.out.println("I think we are at " + markerPose);
+		currentPose = markerPose;
+	}
+
+	public void setVisibleMarkers(List<MarkerPose> visibleMarkers) {
+		this.visibleMarkers = visibleMarkers;
+		System.out.println("Seeing markers "
+				+ Arrays.toString(visibleMarkers.toArray()));
 	}
 }

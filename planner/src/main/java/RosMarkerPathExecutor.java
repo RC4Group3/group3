@@ -21,7 +21,7 @@ public class RosMarkerPathExecutor implements MarkerPathExecutor {
 
 		ServiceClient<brics_msgs.markerFollowerRequest, brics_msgs.markerFollowerResponse> service;
 		try {
-			service = connectedNode.newServiceClient("run_ar_follower",
+			service = connectedNode.newServiceClient("/run_ar_follower",
 					brics_msgs.markerFollower._TYPE);
 		} catch (ServiceNotFoundException e) {
 			System.out.println("Failed to find service.");
@@ -40,7 +40,7 @@ public class RosMarkerPathExecutor implements MarkerPathExecutor {
 
 					@Override
 					public void onFailure(RemoteException arg0) {
-						System.out.println("Path following failed");
+						System.out.println("Path following failed.");
 						success = false;
 					}
 				});

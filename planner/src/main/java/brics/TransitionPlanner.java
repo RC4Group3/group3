@@ -12,13 +12,14 @@ public class TransitionPlanner implements SubPlanner {
 
 	private Map<MarkerPose, MapPose> markerToMap = new HashMap<MarkerPose, MapPose>();
 	private Map<MapPose, MarkerPose> mapToMarker = new HashMap<MapPose, MarkerPose>();
-
+	private TransitionExecutor executor;
 	private MarkerPlanner markerPlanner;
 	private MapPlanner mapPlanner;
 	
-	public TransitionPlanner(MarkerPlanner markerPlanner, MapPlanner mapPlanner) {
+	public TransitionPlanner(MarkerPlanner markerPlanner, MapPlanner mapPlanner, TransitionExecutor executor) {
 		this.markerPlanner = markerPlanner; 
 		this.mapPlanner = mapPlanner;
+		this.executor = executor;
 	}
 	
 	public void addMarkerToMap(MarkerPose marker, MapPose map) {
@@ -72,12 +73,14 @@ public class TransitionPlanner implements SubPlanner {
 	@Override
 	public boolean moveTo(Pose goal) {
 		if (goal instanceof MarkerPose) {
+			executor.switchToMarker((MarkerPose) goal);
 			System.out.println("Transition to Marker "
 					+ ((MarkerPose) goal).getMarkerId());
 			markerPlanner.setCurrentPose((MarkerPose) goal);
 			mapPlanner.setCurrentPose(null);
 		}
 		else if (goal instanceof MapPose) {
+			executor.switchToMap((MapPose) goal);
 			System.out.println("Transition to map "
 					+ ((MapPose) goal).getReference());
 			markerPlanner.setCurrentPose(null);

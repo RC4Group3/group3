@@ -3,15 +3,20 @@ package brics;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import brics.types.MapPose;
 import java.util.Map;
 
+import brics.types.MapPose;
 import brics.types.Pose;
 
 public class MapPlanner implements SubPlanner {
 
 	private List<MapPose> interestingPoses = new ArrayList<MapPose>();
 	private MapPose currentPose;
+	private MapExecutor executor;
+
+	public MapPlanner(MapExecutor executor) {
+		this.executor = executor;
+	}
 
 	@Override
 	public Map<Pose, Double> getReachablePoses(Pose start) {
@@ -68,11 +73,14 @@ public class MapPlanner implements SubPlanner {
 		MapPose mapGoal = (MapPose) goal;
 		System.out.println("Moving to " + mapGoal.getReference() + ": "
 				+ mapGoal.getX() + "/" + mapGoal.getY());
+		executor.execute(mapGoal);
 		setCurrentPose((MapPose) goal);
 		return true;
 	}
 
 	public void setCurrentPose(MapPose mapPose) {
+		if (mapPose != null && !mapPose.equals(currentPose))
+			System.out.println("I think we are at " + mapPose);
 		currentPose = mapPose;
 	}
 
